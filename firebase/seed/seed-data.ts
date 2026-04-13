@@ -1,3 +1,14 @@
+import type { Avatar, GameMap, MapPoint, Quiz, QuizQuestion, Video } from "../../src/types/models";
+
+interface SeedDataShape {
+  avatars: Record<string, Avatar>;
+  maps: Record<string, GameMap>;
+  mapPoints: Record<string, MapPoint>;
+  videos: Record<string, Video>;
+  quizzes: Record<string, Quiz>;
+  quizQuestions: Record<string, QuizQuestion>;
+}
+
 export const seedData = {
   avatars: {
     "avatar-boy-01": {
@@ -199,4 +210,4 @@ export const seedData = {
       sortOrder: 1
     }
   }
-};
+} satisfies SeedDataShape;

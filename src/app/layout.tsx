@@ -5,6 +5,11 @@ export const metadata = {
   title: "ドット学習マップ",
   description: "Firebase ベースの教育用 Web アプリ",
   manifest: "/manifest.webmanifest",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

@@ -1,6 +1,8 @@
 # ドット学習マップ MVP
 
 Next.js App Router + TypeScript + Firebase Authentication + Cloud Firestore で作る、スマホ向け教育 Web アプリです。  
+このリポジトリは **外部公開しない運用** を前提に整理しています。  
+基本方針は `フロントはローカルで自分だけが確認`、`無料の Firebase はバックエンド用途のみ利用` です。  
 MVP では以下を実装しています。
 
 - メール/パスワード登録とログイン
@@ -71,7 +73,11 @@ copy .env.local.example .env.local
 - Firebase Authentication
   - メール/パスワード
 - Cloud Firestore
-- Firebase Hosting
+
+補足:
+
+- この構成では Firebase を `認証 / DB / rules / seed` 用途に使います
+- フロントはまず `localhost` で確認し、**外部公開は行わない** 方針です
 
 4. `.env.local` に Firebase Web SDK の設定を入れる
 
@@ -111,6 +117,16 @@ npm run dev
 http://localhost:3000
 ```
 
+## 非公開運用の方針
+
+- フロントエンドは `localhost` でのみ確認する
+- Firebase は無料枠の `Authentication / Firestore / Rules` のみ利用する
+- **Firebase Hosting や App Hosting へ公開デプロイしない**
+- 検索エンジン露出を避けるため `robots noindex` と `robots.txt` を設定済み
+
+Web アプリである以上、ブラウザ確認にはローカル HTTP サーバー相当が必要です。  
+そのため `npm run dev` または `next start` のような **ローカル限定サーバー** は使いますが、外部公開用サーバーは前提にしません。
+
 ## 実装ルールに沿った構成
 
 - 型定義は `src/types/models.ts` に集約
@@ -135,8 +151,11 @@ http://localhost:3000
 型・lint の確認:
 
 ```bash
+npm run verify
+npm run test:rules
 npx tsc --noEmit
 npm run lint
+npm run build
 ```
 
 ## 動画取得と未解放情報の扱い
@@ -155,22 +174,10 @@ YouTube の限定公開 URL は完全には秘匿できません。
 - 教材マスタ編集は admin のみ
 - admin 判定は `users.role == "admin"` を利用
 
-## Firebase Hosting へのデプロイ
+## 公開デプロイについて
 
-この MVP は Firebase 中心で構成しています。  
-Next.js を Firebase に載せる場合は、プロジェクト状況に応じて以下のいずれかを使ってください。
-
-1. Firebase Hosting + Web Frameworks
-2. Firebase App Hosting
-
-一般的には次で開始できます。
-
-```bash
-firebase experiments:enable webframeworks
-firebase deploy
-```
-
-運用方針に応じて Hosting / App Hosting を選んでください。
+現時点では **外部公開しない** 方針のため、Hosting / App Hosting への公開デプロイ手順は標準運用から外しています。  
+将来必要になった場合だけ、別ブランチまたは別設定で公開導線を追加する想定です。
 
 ## 未解決事項と注意点
 
@@ -178,6 +185,7 @@ firebase deploy
 - 厳密な再生率判定は将来 YouTube IFrame API で強化可能です
 - Firestore Rules は権限制御中心で、進行ロジックの厳密検証まではしていません
 - 本番では admin 判定をカスタムクレームへ移行するのがより安全です
+- `npm run test:rules` はローカル Firestore Emulator を使います
 
 ## 今後の拡張案
 

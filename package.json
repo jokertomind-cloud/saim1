@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx firebase/seed/import-seed.ts"
+    "seed": "tsx firebase/seed/import-seed.ts",
+    "verify": "tsx scripts/run-test-suite.ts",
+    "test:rules": "node scripts/run-firestore-emulator-tests.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -19,12 +21,14 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.15.0",
     "eslint-config-next": "^15.0.3",
     "firebase-admin": "^13.0.1",
+    "firebase-tools": "^15.14.0",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3"
   }
