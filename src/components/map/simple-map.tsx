@@ -36,8 +36,13 @@ export const SimpleMap = ({ map, points, playerX, playerY, onMove, onPointTap, o
           const isPlayer = cell.x === playerX && cell.y === playerY;
           const point = points.find((item) => item.data.x === cell.x && item.data.y === cell.y);
           const blocked = map.obstacles.some((item) => item.x === cell.x && item.y === cell.y);
+          const labelParts = [`セル ${cell.x}, ${cell.y}`];
+          if (blocked) labelParts.push("障害物");
+          if (point) labelParts.push(`地点 ${point.data.name}`);
+          if (isPlayer) labelParts.push("現在地");
           return (
             <button
+              aria-label={labelParts.join(" / ")}
               key={`${cell.x}-${cell.y}`}
               className={`map-cell ${blocked ? "blocked" : ""} ${isPlayer ? "player" : ""}`}
               disabled={blocked}
