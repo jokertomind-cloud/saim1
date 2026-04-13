@@ -63,9 +63,8 @@ export const recordVideoWatch = async ({
     lastWatchedAt: new Date()
   });
 
-  const [allVideos, allQuizDefs, allVideoStats, allQuizResults] = await Promise.all([
+  const [allVideos, allVideoStats, allQuizResults] = await Promise.all([
     listOrderedCollection<Video>("videos", "order"),
-    listOrderedCollection<Quiz>("quizzes", "title"),
     listOrderedCollection<UserVideoStat>("userVideoStats", "videoId"),
     listOrderedCollection<UserQuizResult>("userQuizResults", "quizId")
   ]);
@@ -74,7 +73,6 @@ export const recordVideoWatch = async ({
     videos: allVideos.filter(
       (item) => item.data.isPublished && (item.data.targetGender === "all" || item.data.targetGender === userGender)
     ),
-    quizzes: allQuizDefs,
     videoStats: allVideoStats.filter((item) => item.data.uid === uid),
     quizResults: allQuizResults.filter((item) => item.data.uid === uid),
     current: progress

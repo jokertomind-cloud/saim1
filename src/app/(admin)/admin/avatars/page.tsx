@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -72,7 +73,14 @@ export default function AdminAvatarsPage() {
           {items.map((item) => (
             <article className="panel split" key={item.id}>
               <div className="split">
-                <img alt={item.data.name} src={item.data.thumbnailUrl} style={{ width: 48, height: 48, imageRendering: "pixelated" }} />
+                <Image
+                  alt={item.data.name}
+                  height={48}
+                  src={item.data.thumbnailUrl}
+                  style={{ imageRendering: "pixelated" }}
+                  unoptimized
+                  width={48}
+                />
                 <div className="stack">
                   <strong>{item.data.name}</strong>
                   <span className="hint">{item.id}</span>

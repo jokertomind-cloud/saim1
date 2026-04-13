@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -77,7 +78,7 @@ export default function RegisterPage() {
                 onClick={() => form.setValue("avatarId", avatar.id)}
                 type="button"
               >
-                <img alt={avatar.data.name} src={avatar.data.thumbnailUrl} />
+                <Image alt={avatar.data.name} height={56} src={avatar.data.thumbnailUrl} unoptimized width={56} />
                 <strong>{avatar.data.name}</strong>
               </button>
             ))}

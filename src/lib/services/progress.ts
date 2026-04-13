@@ -1,12 +1,4 @@
-import type {
-  Quiz,
-  QuizQuestion,
-  UserProgress,
-  UserQuizResult,
-  UserVideoStat,
-  Video,
-  WithId
-} from "@/types/models";
+import type { Quiz, QuizQuestion, UserProgress, UserQuizResult, UserVideoStat, Video, WithId } from "@/types/models";
 
 export const isGenderAllowed = (userGender: string, targetGender: string) =>
   targetGender === "all" || userGender === targetGender;
@@ -36,7 +28,6 @@ export const canUnlockVideo = ({
   progress: UserProgress | null;
   videoStats: WithId<UserVideoStat>[];
   quizResults: WithId<UserQuizResult>[];
-  quizzes: WithId<Quiz>[];
 }) => {
   if (!video.isPublished) return false;
   if (!isGenderAllowed(userGender, video.targetGender)) return false;
@@ -56,13 +47,11 @@ export const canUnlockVideo = ({
 
 export const recalculateProgress = ({
   videos,
-  quizzes,
   videoStats,
   quizResults,
   current
 }: {
   videos: WithId<Video>[];
-  quizzes: WithId<Quiz>[];
   videoStats: WithId<UserVideoStat>[];
   quizResults: WithId<UserQuizResult>[];
   current: UserProgress | null;
