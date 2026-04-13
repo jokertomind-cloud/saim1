@@ -1,9 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { Field, TextArea, TextInput } from "@/components/ui/form";
 import { deleteQuiz, getQuizQuestion, listQuizzes, listVideos, saveQuiz, saveQuizQuestion } from "@/lib/services/admin-service";
@@ -15,6 +17,7 @@ type FormValues = z.infer<typeof quizSchema> & { quizId: string; questionId: str
 export default function AdminQuizzesPage() {
   const [items, setItems] = useState<Array<{ id: string; data: Quiz }>>([]);
   const [videos, setVideos] = useState<Array<{ id: string; data: Video }>>([]);
+  const [keyword, setKeyword] = useState("");
   const form = useForm<FormValues>({
     resolver: zodResolver(quizSchema.extend({ quizId: z.string().min(1), questionId: z.string().min(1) })),
     defaultValues: {
@@ -40,6 +43,14 @@ export default function AdminQuizzesPage() {
     reload();
     listVideos().then(setVideos);
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const normalized = keyword.trim().toLowerCase();
+    if (!normalized) return items;
+    return items.filter((item) =>
+      [item.id, item.data.title, item.data.description, item.data.videoId].join(" ").toLowerCase().includes(normalized)
+    );
+  }, [items, keyword]);
 
   const submit = form.handleSubmit(async (values) => {
     await saveQuiz(values.quizId, {
@@ -145,7 +156,13 @@ export default function AdminQuizzesPage() {
         </form>
         <section className="card stack">
           <h2>一覧</h2>
-          {items.map((item) => (
+          <AdminListToolbar
+            countLabel={`表示 ${filteredItems.length} / ${items.length}`}
+            keyword={keyword}
+            keywordPlaceholder="クイズID / タイトル / 動画ID"
+            onKeywordChange={setKeyword}
+          />
+          {filteredItems.map((item) => (
             <article className="panel stack" key={item.id}>
               <div className="split">
                 <strong>{item.data.title}</strong>

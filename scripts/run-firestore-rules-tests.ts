@@ -108,6 +108,8 @@ const main = async () => {
     const userDb = testEnv.authenticatedContext("normal-user").firestore();
     const otherUserDb = testEnv.authenticatedContext("other-user").firestore();
     const adminDb = testEnv.authenticatedContext("admin-user").firestore();
+    const claimsAdminDb = testEnv.authenticatedContext("claims-admin", { admin: true }).firestore();
+    const claimsOnlyUserDb = testEnv.authenticatedContext("claims-user", { admin: false }).firestore();
 
     await assertSucceeds(getDoc(doc(anonymousDb, "maps", "main-map")));
     await assertSucceeds(getDoc(doc(anonymousDb, "avatars", "avatar-boy-01")));
@@ -167,6 +169,30 @@ const main = async () => {
     );
 
     await assertSucceeds(getDoc(doc(adminDb, "userProgress", "normal-user")));
+    await assertSucceeds(
+      setDoc(doc(claimsAdminDb, "videos", "video-claims-admin"), {
+        title: "Claims admin video",
+        description: "desc",
+        youtubeUrl: "https://www.youtube.com/watch?v=claims",
+        youtubeVideoId: "claims",
+        mapPointId: "point-1",
+        level: 3,
+        order: 3,
+        requiredWatchCount: 1,
+        targetGender: "all",
+        prerequisiteVideoIds: [],
+        prerequisiteQuizIds: [],
+        prerequisiteLevel: null,
+        playbackMode: "embed",
+        isPublished: true
+      })
+    );
+    await assertSucceeds(getDoc(doc(claimsAdminDb, "userProgress", "normal-user")));
+    await assertFails(
+      setDoc(doc(claimsOnlyUserDb, "videos", "video-claims-user"), {
+        title: "Claims user video"
+      })
+    );
 
     console.log("Firestore rules tests passed.");
   } finally {

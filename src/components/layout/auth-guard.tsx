@@ -22,9 +22,9 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
-  const { profile, loading } = useAuth();
+  const { adminAccess, loading } = useAuth();
   if (loading) return <div className="panel">読み込み中...</div>;
-  if (profile?.role !== "admin") {
+  if (!adminAccess.canAccessAdmin) {
     return (
       <div className="panel stack">
         <h2>管理画面にアクセスできません</h2>

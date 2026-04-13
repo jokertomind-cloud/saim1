@@ -1,9 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { AdminListToolbar } from "@/components/admin/admin-list-toolbar";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { Field, TextArea, TextInput } from "@/components/ui/form";
 import { deleteVideo, listPoints, listVideos, saveVideo } from "@/lib/services/admin-service";
@@ -16,6 +18,8 @@ type FormValues = z.infer<typeof videoSchema> & { id: string };
 export default function AdminVideosPage() {
   const [items, setItems] = useState<Array<{ id: string; data: Video }>>([]);
   const [points, setPoints] = useState<Array<{ id: string; data: MapPoint }>>([]);
+  const [keyword, setKeyword] = useState("");
+  const [genderFilter, setGenderFilter] = useState<Video["targetGender"] | "all-items">("all-items");
   const form = useForm<FormValues>({
     resolver: zodResolver(videoSchema.extend({ id: z.string().min(1) })),
     defaultValues: {
@@ -41,6 +45,20 @@ export default function AdminVideosPage() {
     reload();
     listPoints().then(setPoints);
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const normalized = keyword.trim().toLowerCase();
+    return items.filter((item) => {
+      const matchesKeyword =
+        !normalized ||
+        [item.id, item.data.title, item.data.description, item.data.youtubeVideoId, item.data.mapPointId]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalized);
+      const matchesGender = genderFilter === "all-items" || item.data.targetGender === genderFilter;
+      return matchesKeyword && matchesGender;
+    });
+  }, [genderFilter, items, keyword]);
 
   const submit = form.handleSubmit(async (values) => {
     await saveVideo(values.id, {
@@ -125,7 +143,23 @@ export default function AdminVideosPage() {
         </form>
         <section className="card stack">
           <h2>一覧</h2>
-          {items.map((item) => (
+          <AdminListToolbar
+            countLabel={`表示 ${filteredItems.length} / ${items.length}`}
+            keyword={keyword}
+            keywordPlaceholder="ID / タイトル / videoId / 地点"
+            onKeywordChange={setKeyword}
+            onSelectChange={(value) => setGenderFilter(value as Video["targetGender"] | "all-items")}
+            selectLabel="対象性別"
+            selectOptions={[
+              { label: "すべて", value: "all-items" },
+              { label: "all", value: "all" },
+              { label: "male", value: "male" },
+              { label: "female", value: "female" },
+              { label: "other", value: "other" }
+            ]}
+            selectValue={genderFilter}
+          />
+          {filteredItems.map((item) => (
             <article className="panel stack" key={item.id}>
               <div className="split">
                 <strong>{item.data.title}</strong>

@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx firebase/seed/import-seed.ts",
+    "ops:grant-admin": "tsx scripts/grant-admin.ts",
+    "ops:revoke-admin": "tsx scripts/revoke-admin.ts",
     "verify": "tsx scripts/run-test-suite.ts",
     "test:rules": "node scripts/run-firestore-emulator-tests.mjs",
     "test:e2e:smoke": "node scripts/run-localhost-e2e.mjs smoke",

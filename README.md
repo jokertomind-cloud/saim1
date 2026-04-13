@@ -102,8 +102,37 @@ firebase deploy --only firestore:rules,firestore:indexes
 npm run seed
 ```
 
-初回 admin ユーザーは Firestore の `users/{uid}.role` を `admin` に変更してください。  
-この判定は暫定で、将来は Firebase Admin SDK やカスタムクレームへ移行しやすい構成です。
+初回 admin ユーザーも、手動で `users.role` だけを書き換えるのではなく、下記の運用スクリプトで `Custom Claims + Firestore role` を同期して付与してください。  
+現在の実装は `Custom Claims 優先 / users.role フォールバック` です。
+
+### 管理者権限の付与と剥奪
+
+本番強度を上げるため、admin 判定は `Custom Claims 優先 / users.role フォールバック` に寄せています。  
+運用では以下のスクリプトで両方を同期させる想定です。既存の他 claims は壊さず、`admin` だけを追加・削除します。
+
+付与:
+
+```bash
+npm run ops:grant-admin -- --uid=<uid>
+```
+
+または
+
+```bash
+npm run ops:grant-admin -- --email=<email>
+```
+
+剥奪:
+
+```bash
+npm run ops:revoke-admin -- --uid=<uid>
+```
+
+必要な環境変数:
+
+- `FIREBASE_ADMIN_PROJECT_ID`
+- `FIREBASE_ADMIN_CLIENT_EMAIL`
+- `FIREBASE_ADMIN_PRIVATE_KEY`
 
 ## ローカル開発
 
@@ -198,6 +227,19 @@ npm run lint
 npm run build
 ```
 
+## 本番強度と運用計画
+
+- 本番強度プラン: `docs/PRODUCTION_HARDENING_PLAN.md`
+- 運用効率化プラン: `docs/OPERATIONS_PLAN.md`
+
+今回の実装では、次の土台を先に入れています。
+
+- admin 判定の抽象化
+- Custom Claims へ移行しやすい auth/provider 構成
+- Rules の claims 対応
+- admin 付与/剥奪スクリプト
+- 管理画面の検索/絞り込み
+
 ## 動画取得と未解放情報の扱い
 
 YouTube の限定公開 URL は完全には秘匿できません。  
@@ -212,7 +254,8 @@ YouTube の限定公開 URL は完全には秘匿できません。
 
 - 一般ユーザーは自分のプロフィールと進行データのみ読み書き可
 - 教材マスタ編集は admin のみ
-- admin 判定は `users.role == "admin"` を利用
+- admin 判定は `Custom Claims 優先 / users.role フォールバック`
+- Rules 側も同じ方針で、claims に `admin: true` がある管理者を優先して許可
 
 ## 公開デプロイについて
 

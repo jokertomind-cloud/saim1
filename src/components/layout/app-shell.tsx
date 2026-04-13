@@ -20,7 +20,7 @@ export const AppShell = ({
   children: React.ReactNode;
   admin?: boolean;
 }) => {
-  const { profile } = useAuth();
+  const { profile, adminAccess } = useAuth();
   const pathname = usePathname();
 
   return (
@@ -32,7 +32,7 @@ export const AppShell = ({
           {!admin ? <p className="hint">スマホで学びやすい PWA 風レイアウト</p> : null}
         </div>
         <div className="topbar-actions">
-          {profile?.role === "admin" && !admin ? (
+          {adminAccess.canAccessAdmin && !admin ? (
             <Link className="button secondary" href="/admin">
               管理
             </Link>
