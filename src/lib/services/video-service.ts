@@ -50,7 +50,8 @@ export const recordVideoWatch = async ({
   userGender: Video["targetGender"];
 }): Promise<UserProgress> => {
   const statId = `${uid}_${videoId}`;
-  const previousStat = (await getDocument<UserVideoStat>("userVideoStats", statId))?.data;
+  const existingStats = await listCollection<UserVideoStat>("userVideoStats", "uid", uid);
+  const previousStat = existingStats.find((item) => item.data.videoId === videoId)?.data;
   const nextWatchCount = (previousStat?.watchCount ?? 0) + 1;
 
   await saveDocument<UserVideoStat>("userVideoStats", statId, {
@@ -65,16 +66,16 @@ export const recordVideoWatch = async ({
 
   const [allVideos, allVideoStats, allQuizResults] = await Promise.all([
     listOrderedCollection<Video>("videos", "order"),
-    listOrderedCollection<UserVideoStat>("userVideoStats", "videoId"),
-    listOrderedCollection<UserQuizResult>("userQuizResults", "quizId")
+    listCollection<UserVideoStat>("userVideoStats", "uid", uid),
+    listCollection<UserQuizResult>("userQuizResults", "uid", uid)
   ]);
 
   const nextProgress = recalculateProgress({
     videos: allVideos.filter(
       (item) => item.data.isPublished && (item.data.targetGender === "all" || item.data.targetGender === userGender)
     ),
-    videoStats: allVideoStats.filter((item) => item.data.uid === uid),
-    quizResults: allQuizResults.filter((item) => item.data.uid === uid),
+    videoStats: allVideoStats,
+    quizResults: allQuizResults,
     current: progress
   });
 

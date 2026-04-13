@@ -17,7 +17,16 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();
       allow create: if isOwner(uid) && request.resource.data.role == "user";
-      allow update: if (isOwner(uid) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow update: if isAdmin() || (
+        isOwner(uid) &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          "displayName",
+          "gender",
+          "avatarId",
+          "updatedAt",
+          "lastLoginAt"
+        ])
+      );
     }
 
     match /userProgress/{uid} {
@@ -25,11 +34,13 @@ service cloud.firestore {
     }
 
     match /userVideoStats/{docId} {
-      allow read, write: if signedIn() && (request.auth.uid == resource.data.uid || request.auth.uid == request.resource.data.uid || isAdmin());
+      allow read: if signedIn() && ((resource != null && resource.data.uid == request.auth.uid) || isAdmin());
+      allow create, update: if signedIn() && (request.resource.data.uid == request.auth.uid || isAdmin());
     }
 
     match /userQuizResults/{docId} {
-      allow read, write: if signedIn() && (request.auth.uid == resource.data.uid || request.auth.uid == request.resource.data.uid || isAdmin());
+      allow read: if signedIn() && ((resource != null && resource.data.uid == request.auth.uid) || isAdmin());
+      allow create, update: if signedIn() && (request.resource.data.uid == request.auth.uid || isAdmin());
     }
 
     match /avatars/{docId} {

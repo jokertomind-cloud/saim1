@@ -53,7 +53,8 @@ export const submitQuizAnswers = async ({
 }): Promise<{ progress: UserProgress; passed: boolean; score: number }> => {
   const evaluated = scoreQuiz(questions, submission.answers, passingScore);
   const resultId = `${uid}_${submission.quizId}`;
-  const previous = (await getDocument<UserQuizResult>("userQuizResults", resultId))?.data;
+  const existingResults = await listCollection<UserQuizResult>("userQuizResults", "uid", uid);
+  const previous = existingResults.find((item) => item.data.quizId === submission.quizId)?.data;
 
   await saveDocument<UserQuizResult>("userQuizResults", resultId, {
     uid,
@@ -75,16 +76,16 @@ export const submitQuizAnswers = async ({
 
   const [allVideos, allVideoStats, allQuizResults] = await Promise.all([
     listOrderedCollection<Video>("videos", "order"),
-    listOrderedCollection<UserVideoStat>("userVideoStats", "videoId"),
-    listOrderedCollection<UserQuizResult>("userQuizResults", "quizId")
+    listCollection<UserVideoStat>("userVideoStats", "uid", uid),
+    listCollection<UserQuizResult>("userQuizResults", "uid", uid)
   ]);
 
   const nextProgress = recalculateProgress({
     videos: allVideos.filter(
       (item) => item.data.isPublished && (item.data.targetGender === "all" || item.data.targetGender === userGender)
     ),
-    videoStats: allVideoStats.filter((item) => item.data.uid === uid),
-    quizResults: allQuizResults.filter((item) => item.data.uid === uid).concat([
+    videoStats: allVideoStats,
+    quizResults: allQuizResults.concat([
       {
         id: resultId,
         data: {

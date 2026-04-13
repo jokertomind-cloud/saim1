@@ -47,8 +47,13 @@ export default function VideoPage() {
       });
       setProgress(nextProgress);
       setMessage("視聴回数を更新しました。");
-    } catch {
-      setError("視聴記録の保存に失敗しました。");
+    } catch (error) {
+      console.error(error);
+      setError(
+        error instanceof Error
+          ? `視聴記録の保存に失敗しました。 ${error.message}`
+          : "視聴記録の保存に失敗しました。"
+      );
     }
   };
 

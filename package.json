@@ -9,7 +9,9 @@
     "lint": "next lint",
     "seed": "tsx firebase/seed/import-seed.ts",
     "verify": "tsx scripts/run-test-suite.ts",
-    "test:rules": "node scripts/run-firestore-emulator-tests.mjs"
+    "test:rules": "node scripts/run-firestore-emulator-tests.mjs",
+    "test:e2e:smoke": "node scripts/run-localhost-e2e.mjs smoke",
+    "test:e2e": "node scripts/run-localhost-e2e.mjs full"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

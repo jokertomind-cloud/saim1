@@ -1,8 +1,8 @@
 "use client";
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,6 +16,13 @@ const firebaseConfig = {
 let firebaseApp: FirebaseApp | null = null;
 let firebaseAuth: Auth | null = null;
 let firestoreDb: Firestore | null = null;
+let authEmulatorConnected = false;
+let firestoreEmulatorConnected = false;
+
+const shouldUseEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
+const authEmulatorUrl = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_URL;
+const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST;
+const firestoreEmulatorPort = Number(process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_PORT ?? "0");
 
 const assertFirebaseConfig = () => {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
@@ -34,6 +41,10 @@ export const getFirebaseApp = () => {
 export const getFirebaseAuth = () => {
   if (!firebaseAuth) {
     firebaseAuth = getAuth(getFirebaseApp());
+    if (typeof window !== "undefined" && shouldUseEmulators && authEmulatorUrl && !authEmulatorConnected) {
+      connectAuthEmulator(firebaseAuth, authEmulatorUrl, { disableWarnings: true });
+      authEmulatorConnected = true;
+    }
   }
   return firebaseAuth;
 };
@@ -41,6 +52,17 @@ export const getFirebaseAuth = () => {
 export const getFirebaseDb = () => {
   if (!firestoreDb) {
     firestoreDb = getFirestore(getFirebaseApp());
+    if (
+      typeof window !== "undefined" &&
+      shouldUseEmulators &&
+      firestoreEmulatorHost &&
+      Number.isInteger(firestoreEmulatorPort) &&
+      firestoreEmulatorPort > 0 &&
+      !firestoreEmulatorConnected
+    ) {
+      connectFirestoreEmulator(firestoreDb, firestoreEmulatorHost, firestoreEmulatorPort);
+      firestoreEmulatorConnected = true;
+    }
   }
   return firestoreDb;
 };
