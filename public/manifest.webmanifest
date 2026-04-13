@@ -1,0 +1,15 @@
+{
+  "name": "ドット学習マップ",
+  "short_name": "学習マップ",
+  "display": "standalone",
+  "background_color": "#eef8f4",
+  "theme_color": "#1d8b6f",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/avatars/avatar-neutral-01.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && request.resource.data.role == "user";
+      allow update: if (isOwner(uid) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /userProgress/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+
+    match /userVideoStats/{docId} {
+      allow read, write: if signedIn() && (request.auth.uid == resource.data.uid || request.auth.uid == request.resource.data.uid || isAdmin());
+    }
+
+    match /userQuizResults/{docId} {
+      allow read, write: if signedIn() && (request.auth.uid == resource.data.uid || request.auth.uid == request.resource.data.uid || isAdmin());
+    }
+
+    match /avatars/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /maps/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /mapPoints/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /videos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /quizzes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /quizQuestions/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
