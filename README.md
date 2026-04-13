@@ -26,6 +26,9 @@ src/
   app/
   components/
   lib/
+    services/
+    utils/
+    validators/
   providers/
   types/
 firebase/
@@ -106,6 +109,34 @@ npm run dev
 
 ```txt
 http://localhost:3000
+```
+
+## 実装ルールに沿った構成
+
+- 型定義は `src/types/models.ts` に集約
+- Firestore アクセスは `src/lib/services/*` から利用
+- UI コンポーネントと業務ロジックを分離
+- seed データで初期動作確認可能
+- 管理画面も service 層経由で CRUD
+
+主な service:
+
+- `auth-service.ts`
+- `user-service.ts`
+- `avatar-service.ts`
+- `map-service.ts`
+- `video-service.ts`
+- `quiz-service.ts`
+- `history-service.ts`
+- `admin-service.ts`
+
+## 検証コマンド
+
+型・lint の確認:
+
+```bash
+npx tsc --noEmit
+npm run lint
 ```
 
 ## 動画取得と未解放情報の扱い
