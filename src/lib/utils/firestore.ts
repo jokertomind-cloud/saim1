@@ -14,7 +14,7 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import { getFirebaseDb } from "@/lib/firebase/client";
 
 export const nowTimestamp = () => serverTimestamp();
 
@@ -28,6 +28,7 @@ export const toDateLabel = (value: unknown) => {
 };
 
 export const listCollection = async <T>(collectionName: string, field?: string, equal?: string) => {
+  const db = getFirebaseDb();
   const base = collection(db, collectionName);
   const q = field ? query(base, where(field, "==", equal)) : query(base);
   const snap = await getDocs(q);
@@ -35,16 +36,19 @@ export const listCollection = async <T>(collectionName: string, field?: string, 
 };
 
 export const listOrderedCollection = async <T>(collectionName: string, orderField: string) => {
+  const db = getFirebaseDb();
   const snap = await getDocs(query(collection(db, collectionName), orderBy(orderField, "asc")));
   return snap.docs.map((item) => ({ id: item.id, data: item.data() as T }));
 };
 
 export const getDocument = async <T>(collectionName: string, id: string) => {
+  const db = getFirebaseDb();
   const snap = await getDoc(doc(db, collectionName, id));
   return snap.exists() ? ({ id: snap.id, data: snap.data() as T }) : null;
 };
 
 export const getDocumentsByIds = async <T>(collectionName: string, ids: string[]) => {
+  const db = getFirebaseDb();
   if (!ids.length) return [] as Array<{ id: string; data: T }>;
   const chunks = Array.from({ length: Math.ceil(ids.length / 10) }, (_, index) => ids.slice(index * 10, index * 10 + 10));
   const results = await Promise.all(
@@ -54,10 +58,12 @@ export const getDocumentsByIds = async <T>(collectionName: string, ids: string[]
 };
 
 export const saveDocument = async <T extends object>(collectionName: string, id: string, data: T) => {
+  const db = getFirebaseDb();
   await setDoc(doc(db, collectionName, id), { ...data, updatedAt: nowTimestamp() }, { merge: true });
 };
 
 export const createDocument = async <T extends object>(collectionName: string, data: T) => {
+  const db = getFirebaseDb();
   return addDoc(collection(db, collectionName), {
     ...data,
     createdAt: nowTimestamp(),
@@ -66,9 +72,11 @@ export const createDocument = async <T extends object>(collectionName: string, d
 };
 
 export const patchDocument = async <T extends object>(collectionName: string, id: string, data: Partial<T>) => {
+  const db = getFirebaseDb();
   await updateDoc(doc(db, collectionName, id), { ...data, updatedAt: nowTimestamp() });
 };
 
 export const removeDocument = async (collectionName: string, id: string) => {
+  const db = getFirebaseDb();
   await deleteDoc(doc(db, collectionName, id));
 };

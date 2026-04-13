@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { usePathname } from "next/navigation";
-import { auth } from "@/lib/firebase/client";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuth } from "@/providers/auth-provider";
 
 const navItems = [
@@ -38,7 +38,7 @@ export const AppShell = ({
             </Link>
           ) : null}
           {!admin ? <span className="pill">{profile?.displayName ?? "ゲスト"}</span> : null}
-          <button className="button ghost" onClick={() => signOut(auth)}>
+          <button className="button ghost" onClick={() => signOut(getFirebaseAuth())}>
             ログアウト
           </button>
         </div>

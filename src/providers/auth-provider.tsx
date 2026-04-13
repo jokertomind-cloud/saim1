@@ -2,7 +2,7 @@
 
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { auth } from "@/lib/firebase/client";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 import { getUserProfile, touchLastLogin } from "@/lib/services/user-service";
 import type { UserProfile } from "@/types/models";
 
@@ -26,15 +26,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshProfile = async () => {
-    if (!auth.currentUser) {
+    const nextAuth = getFirebaseAuth();
+    if (!nextAuth.currentUser) {
       setProfile(null);
       return;
     }
-    const next = await getUserProfile(auth.currentUser.uid);
+    const next = await getUserProfile(nextAuth.currentUser.uid);
     setProfile(next);
   };
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
       setUser(nextUser);
       if (!nextUser) {

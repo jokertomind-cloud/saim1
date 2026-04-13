@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { ErrorState, SuccessState } from "@/components/ui/feedback";
 import { Field, TextArea, TextInput } from "@/components/ui/form";
 import { deleteMap, listMaps, saveMap } from "@/lib/services/admin-service";
 import { mapSchema } from "@/lib/validators/forms";
@@ -15,6 +16,7 @@ type FormValues = z.infer<typeof mapSchema> & { id: string; obstaclesText: strin
 export default function AdminMapsPage() {
   const [items, setItems] = useState<Array<{ id: string; data: GameMap }>>([]);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const form = useForm<FormValues>({
     resolver: zodResolver(mapSchema.extend({ id: z.string().min(1), obstaclesText: z.string().default("[]") })),
     defaultValues: {
@@ -37,7 +39,23 @@ export default function AdminMapsPage() {
   }, []);
 
   const submit = form.handleSubmit(async (values) => {
-    const obstacles = JSON.parse(values.obstaclesText || "[]");
+    setMessage("");
+    setError("");
+    let obstacles: GameMap["obstacles"];
+    try {
+      const parsed = JSON.parse(values.obstaclesText || "[]") as unknown;
+      if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== "object" || item === null || !("x" in item) || !("y" in item))) {
+        throw new Error("invalid-obstacles");
+      }
+      obstacles = parsed.map((item) => ({
+        x: Number((item as { x: number }).x),
+        y: Number((item as { y: number }).y)
+      }));
+    } catch {
+      setError("障害物(JSON)は [{\"x\":1,\"y\":2}] の形式で入力してください。");
+      return;
+    }
+
     await saveMap(values.id, {
       name: values.name,
       description: values.description,
@@ -92,7 +110,8 @@ export default function AdminMapsPage() {
           <button className="button" type="submit">
             保存
           </button>
-          {message ? <p>{message}</p> : null}
+          {message ? <SuccessState message={message} /> : null}
+          {error ? <ErrorState message={error} /> : null}
         </form>
         <section className="card stack">
           <h2>一覧</h2>

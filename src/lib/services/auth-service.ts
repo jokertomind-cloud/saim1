@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 import { getDocument, saveDocument } from "@/lib/utils/firestore";
 import type { AuthRegisterInput, GameMap, UserProfile, UserProgress } from "@/types/models";
 
@@ -7,12 +7,12 @@ const DEFAULT_MAP_ID = "main-map";
 const DEFAULT_VIDEO_ID = "video-1";
 
 export const loginWithEmail = (email: string, password: string) =>
-  signInWithEmailAndPassword(auth, email, password);
+  signInWithEmailAndPassword(getFirebaseAuth(), email, password);
 
-export const requestPasswordReset = (email: string) => sendPasswordResetEmail(auth, email);
+export const requestPasswordReset = (email: string) => sendPasswordResetEmail(getFirebaseAuth(), email);
 
 export const registerUserAccount = async (input: AuthRegisterInput): Promise<string> => {
-  const credential = await createUserWithEmailAndPassword(auth, input.email, input.password);
+  const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), input.email, input.password);
   const uid = credential.user.uid;
   const firstMap = await getDocument<GameMap>("maps", DEFAULT_MAP_ID);
 

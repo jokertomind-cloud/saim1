@@ -5,7 +5,6 @@ export const metadata = {
   title: "ドット学習マップ",
   description: "Firebase ベースの教育用 Web アプリ",
   manifest: "/manifest.webmanifest",
-  themeColor: "#1d8b6f",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -17,7 +16,8 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  viewportFit: "cover"
+  viewportFit: "cover",
+  themeColor: "#1d8b6f"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

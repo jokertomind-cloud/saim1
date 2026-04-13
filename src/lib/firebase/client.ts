@@ -1,8 +1,8 @@
 "use client";
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,7 +13,34 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let firebaseApp: FirebaseApp | null = null;
+let firebaseAuth: Auth | null = null;
+let firestoreDb: Firestore | null = null;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const assertFirebaseConfig = () => {
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
+    throw new Error("Firebase configuration is missing. Check .env.local values.");
+  }
+};
+
+export const getFirebaseApp = () => {
+  assertFirebaseConfig();
+  if (!firebaseApp) {
+    firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  }
+  return firebaseApp;
+};
+
+export const getFirebaseAuth = () => {
+  if (!firebaseAuth) {
+    firebaseAuth = getAuth(getFirebaseApp());
+  }
+  return firebaseAuth;
+};
+
+export const getFirebaseDb = () => {
+  if (!firestoreDb) {
+    firestoreDb = getFirestore(getFirebaseApp());
+  }
+  return firestoreDb;
+};

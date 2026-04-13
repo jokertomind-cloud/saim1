@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { ErrorState, LoadingState } from "@/components/ui/feedback";
 import { loginWithEmail } from "@/lib/services/auth-service";
 
-export default function LoginPage() {
+const LoginPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -53,5 +53,13 @@ export default function LoginPage() {
         </Link>
       </form>
     </main>
+  );
+};
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="container auth-wrap"><LoadingState label="ログイン画面を読み込み中..." /></main>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
