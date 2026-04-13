@@ -8,7 +8,7 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { Field, TextArea, TextInput } from "@/components/ui/form";
 import { deleteQuiz, getQuizQuestion, listQuizzes, listVideos, saveQuiz, saveQuizQuestion } from "@/lib/services/admin-service";
 import { quizSchema } from "@/lib/validators/forms";
-import type { Quiz, QuizQuestion, Video } from "@/types/models";
+import type { Quiz, Video } from "@/types/models";
 
 type FormValues = z.infer<typeof quizSchema> & { quizId: string; questionId: string };
 

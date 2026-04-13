@@ -29,8 +29,7 @@ export const canUnlockVideo = ({
   userGender,
   progress,
   videoStats,
-  quizResults,
-  quizzes
+  quizResults
 }: {
   video: Video;
   userGender: string;
@@ -45,7 +44,6 @@ export const canUnlockVideo = ({
 
   const hasAllVideos = video.prerequisiteVideoIds.every((id) => {
     const stat = videoStats.find((item) => item.data.videoId === id)?.data;
-    const prerequisiteVideo = quizzes;
     return !!stat?.completedRequiredWatch || progress?.completedVideoIds.includes(id);
   });
 

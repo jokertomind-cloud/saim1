@@ -21,7 +21,7 @@ export default function LoginPage() {
     try {
       await loginWithEmail(email, password);
       router.push(searchParams.get("redirect") || "/dashboard");
-    } catch (nextError) {
+    } catch {
       setError("ログインに失敗しました。メールアドレスまたはパスワードを確認してください。");
     } finally {
       setSubmitting(false);
