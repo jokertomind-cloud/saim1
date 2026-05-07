@@ -158,3 +158,12 @@ export interface QuizSubmissionInput {
   videoId: string;
   answers: Record<string, string>;
 }
+
+export interface SetupBootstrapInput {
+  setupToken: string;
+  displayName: string;
+  gender: Gender;
+  avatarId: string;
+  email: string;
+  password: string;
+}

@@ -76,3 +76,15 @@ export const avatarSchema = z.object({
   thumbnailUrl: z.string().min(1),
   sortOrder: z.coerce.number().int().min(0)
 });
+
+export const setupBootstrapSchema = z.object({
+  setupToken: z.string().min(8, "セットアップトークンを入力してください"),
+  displayName: z.string().min(2, "管理者表示名は2文字以上で入力してください"),
+  gender: z.enum(["male", "female", "other"]),
+  avatarId: z.string().min(1, "初期アバターを選択してください"),
+  email: z.string().email("メールアドレスの形式が不正です"),
+  password: z
+    .string()
+    .min(8, "管理者パスワードは8文字以上にしてください")
+    .max(128, "管理者パスワードは128文字以内にしてください")
+});

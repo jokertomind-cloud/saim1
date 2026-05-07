@@ -1,42 +1,43 @@
-import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-import { spawn } from "node:child_process";
+import { createTestEnv, ensurePortsAreFree, quoteForShell, resolveCliEntry, resolvePackageFile, spawnNodeCli } from "./lib/test-runtime.mjs";
 
-const microsoftDir = "C:\\Program Files\\Microsoft";
 const mode = process.argv[2] === "smoke" ? "smoke" : "full";
 const extraArgs = process.argv.slice(3);
+const EMULATOR_PORTS = [3000, 8080, 9099, 4400, 4500, 9150];
+const projectId = "demo-pixel-learning-map-test";
 
-const findJavaHome = () => {
-  if (!existsSync(microsoftDir)) return null;
-  const entries = readdirSync(microsoftDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && entry.name.startsWith("jdk-"))
-    .map((entry) => join(microsoftDir, entry.name))
-    .sort()
-    .reverse();
+const run = async () => {
+  await ensurePortsAreFree(EMULATOR_PORTS);
 
-  return entries[0] ?? null;
+  const env = createTestEnv();
+  const firebaseCli = resolveCliEntry("firebase-tools/lib/bin/firebase.js");
+  const tsxCli = resolvePackageFile("tsx/package.json", "dist/cli.mjs");
+  const passthroughArgs = extraArgs.join(" ");
+  const scriptCommand = `${quoteForShell(process.execPath)} ${quoteForShell(tsxCli)} scripts/run-playwright-suite.ts ${mode}${passthroughArgs ? ` ${passthroughArgs}` : ""}`;
+  const child = spawnNodeCli(
+    firebaseCli,
+    [
+      "emulators:exec",
+      "--project",
+      projectId,
+      "--only",
+      "auth,firestore",
+      scriptCommand
+    ],
+    { env }
+  );
+
+  child.on("exit", async (code) => {
+    try {
+      await ensurePortsAreFree(EMULATOR_PORTS);
+    } catch (error) {
+      console.error(error);
+    }
+
+    process.exit(code ?? 1);
+  });
 };
 
-const javaHome = process.env.JAVA_HOME || findJavaHome();
-const env = { ...process.env };
-
-if (javaHome) {
-  env.JAVA_HOME = javaHome;
-  env.PATH = `${join(javaHome, "bin")};${env.PATH ?? ""}`;
-}
-
-const runner = `tsx scripts/run-playwright-suite.ts ${mode}${extraArgs.length ? ` ${extraArgs.join(" ")}` : ""}`;
-const command =
-  process.platform === "win32"
-    ? `npx firebase emulators:exec --project demo-pixel-learning-map-test --only auth,firestore "${runner}"`
-    : `npx firebase emulators:exec --project demo-pixel-learning-map-test --only auth,firestore '${runner}'`;
-
-const child = spawn(command, {
-  stdio: "inherit",
-  env,
-  shell: true
-});
-
-child.on("exit", (code) => {
-  process.exit(code ?? 1);
+run().catch((error) => {
+  console.error(error);
+  process.exit(1);
 });

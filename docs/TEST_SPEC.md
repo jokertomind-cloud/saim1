@@ -8,6 +8,7 @@
 - 学習進行ロジック
 - Firestore に投入する seed データ整合性
 - Firestore Security Rules
+- App Hosting 初回セットアップ
 - localhost ブラウザのスモークテスト
 - localhost ブラウザの詳細 E2E
 - ビルド可能性
@@ -134,7 +135,23 @@
 - admin が教材マスタを書ける
 - admin が他人の進行情報を読める
 
-### 6. localhost ブラウザスモークテスト
+### 6. App Hosting 初回セットアップ結合テスト
+
+対象:
+
+- `/setup`
+- `/api/setup/bootstrap`
+- Admin SDK 経由の初期投入
+
+確認事項:
+
+- 正しい `APP_SETUP_TOKEN` で初期投入と最初の管理者作成が成功する
+- `users` と `userProgress` が作成される
+- 最初の管理者へ `admin` Custom Claim が付与される
+- `appConfig/setup` に完了状態が記録される
+- 2回目のセットアップは拒否される
+
+### 7. localhost ブラウザスモークテスト
 
 対象:
 
@@ -153,7 +170,7 @@
 - admin ユーザーで管理画面概要を開ける
 - admin ユーザーがユーザー一覧から進行度詳細を見られる
 
-### 7. localhost ブラウザ詳細 E2E
+### 8. localhost ブラウザ詳細 E2E
 
 対象:
 
@@ -170,6 +187,7 @@
 - 新規登録した学習者がダッシュボードへ到達する
 - 新規登録画面で入力エラーがわかりやすく表示される
 - ログイン失敗時にエラーメッセージが表示される
+- 初回セットアップ画面で管理者作成が成功し、同じセッションで再実行が拒否される
 - プロフィールで表示名とアバターを更新できる
 - マップ上を十字移動して地点接触メッセージが表示される
 - マップ上を隣接タップで移動できる
@@ -189,11 +207,12 @@
 
 1. `npm run test:e2e:smoke`
 2. `npm run test:e2e`
-3. `npm run verify`
-4. `npm run test:rules`
-5. `npx tsc --noEmit`
-6. `npm run lint`
-7. `npm run build`
+3. `npm run test:setup`
+4. `npm run verify`
+5. `npm run test:rules`
+6. `npx tsc --noEmit`
+7. `npm run lint`
+8. `npm run build`
 
 ### 人手操作を想定した詳細確認シナリオ
 
@@ -219,11 +238,20 @@ admin:
 4. ユーザー一覧から対象ユーザーを開き、進行度を確認する
 5. 一般ユーザーでは同じ編集導線が使えないことを確認する
 
+App Hosting 初回セットアップ:
+
+1. `/setup` を開く
+2. `APP_SETUP_TOKEN` と最初の管理者情報を入力する
+3. 初期投入成功メッセージを確認する
+4. 作成した管理者で `/admin` へ入れることを確認する
+5. 同じ画面から再度実行すると拒否されることを確認する
+
 ### 自動検証
 
 ```bash
 npm run verify
 npm run test:rules
+npm run test:setup
 npm run test:e2e:smoke
 npm run test:e2e
 npx tsc --noEmit
@@ -240,6 +268,7 @@ npm run build
 - DB投入前の seed データ整合性
 - 参照関係
 - Firestore Rules の主要権限制御
+- App Hosting 初回セットアップの主要成功/拒否パターン
 - localhost 上の主要画面遷移
 - localhost 上の学習者フロー
 - localhost 上の admin CRUD 基本操作

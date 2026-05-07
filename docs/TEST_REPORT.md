@@ -2,7 +2,7 @@
 
 ## 実施日
 
-- 2026-04-13
+- 2026-05-07
 
 ## 実施方針
 
@@ -16,6 +16,7 @@
 ```bash
 npm run test:e2e:smoke
 npm run test:e2e
+npm run test:setup
 npm run verify
 npm run test:rules
 npx tsc --noEmit
@@ -41,7 +42,13 @@ npm run build
 ### 2. ブラウザ詳細 E2E
 
 - `npm run test:e2e` : PASS
-- 合計 14 シナリオ : PASS
+- 合計 `15` シナリオ PASS / `1` シナリオ SKIP
+
+補足:
+
+- `android-layout` 側の `/setup` 通しテストは SKIP
+- 理由は、初回セットアップが 1 回限りのフローであり、同一 Emulator セッション内で 2 回目は正しく拒否される設計だから
+- その代わり、初回セットアップの結合テストは `npm run test:setup` で別途厚く検証している
 
 学習者フロー:
 
@@ -69,12 +76,27 @@ admin フロー:
 
 - 新規登録フォームの入力エラー表示
 - ログイン失敗時のエラー表示
+- `/setup` での初回管理者作成成功
+- `/setup` の再実行拒否
 - 下部固定メニューの主要導線
 - ダッシュボード上の `再視聴可` と `解放済み` の表示差
 - マップの隣接タップ移動
 - 次地点での `未解放の教材があります` 表示
 
-### 3. 入力・ロジック・seed 整合性
+### 3. App Hosting 初回セットアップ結合テスト
+
+- `npm run test:setup` : PASS
+
+確認できた内容:
+
+- 正しい `APP_SETUP_TOKEN` で初期データ投入が成功する
+- 最初の管理者ユーザーが Auth に作成される
+- `users` / `userProgress` が作成される
+- `admin` Custom Claim が付与される
+- `appConfig/setup` に完了状態が記録される
+- 2回目のセットアップは拒否される
+
+### 4. 入力・ロジック・seed 整合性
 
 - `npm run verify` : PASS
 
@@ -87,7 +109,7 @@ admin フロー:
 - seed コレクション間参照整合
 - 座標と選択肢の整合
 
-### 4. Firestore Rules
+### 5. Firestore Rules
 
 - `npm run test:rules` : PASS
 
@@ -100,7 +122,7 @@ admin フロー:
 - `users.role` の勝手な昇格拒否
 - admin の教材編集許可
 
-### 5. 品質ゲート
+### 6. 品質ゲート
 
 - `npx tsc --noEmit` : PASS
 - `npm run lint` : PASS
@@ -115,6 +137,9 @@ admin フロー:
 - E2E の曖昧セレクタを `exact: true` へ修正
 - Firebase Emulator 対応の localhost E2E 環境を追加
 - マップセルにアクセシビリティ用の `aria-label` を追加し、タップ移動の確認を安定化
+- Emulator / Next.js / Playwright の起動を `ポート掃除 -> 起動 -> 応答待ち -> 後片付け` に整理
+- Windows 上で不安定だった shell 依存の起動を Node CLI 直実行へ置き換え
+- `/setup` を 1 回限りにする `appConfig/setup` ガードを追加
 
 ## 未カバー/今後の確認
 

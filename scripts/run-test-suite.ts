@@ -8,6 +8,7 @@ import {
   profileSchema,
   quizSchema,
   registerSchema,
+  setupBootstrapSchema,
   videoSchema
 } from "../src/lib/validators/forms";
 import type {
@@ -178,6 +179,33 @@ const validateSchemas = () => {
         thumbnailUrl: "/avatars/avatar-boy-01.svg",
         sortOrder: 1
       }).success
+    );
+  });
+
+  test("setup bootstrap schema accepts valid hosted setup input", () => {
+    assert.ok(
+      setupBootstrapSchema.safeParse({
+        setupToken: "super-secret-token",
+        displayName: "初期管理者",
+        gender: "other",
+        avatarId: "avatar-boy-01",
+        email: "owner@example.com",
+        password: "Password123!"
+      }).success
+    );
+  });
+
+  test("setup bootstrap schema rejects short setup token", () => {
+    assert.equal(
+      setupBootstrapSchema.safeParse({
+        setupToken: "short",
+        displayName: "初期管理者",
+        gender: "other",
+        avatarId: "avatar-boy-01",
+        email: "owner@example.com",
+        password: "Password123!"
+      }).success,
+      false
     );
   });
 };

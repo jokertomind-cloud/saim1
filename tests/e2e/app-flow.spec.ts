@@ -20,6 +20,36 @@ test.describe("localhost-only detailed browser flow", () => {
     await expect(page.getByText("ログインに失敗しました。メールアドレスまたはパスワードを確認してください。")).toBeVisible();
   });
 
+  test("hosted setup page can create a first admin-style account from a single form submission", async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === "android-layout",
+      "初回セットアップは 1 回限りのフローなので、詳細な通し確認は 1 プロジェクトに限定します。"
+    );
+
+    const seed = `${Date.now()}`;
+    const email = `setup-admin-${seed}@example.com`;
+    const password = "Password123!";
+
+    await page.goto("/setup");
+    await page.getByLabel("セットアップトークン").fill("setup-secret-12345");
+    await page.getByLabel("最初の管理者表示名").fill(`初期管理者${seed}`);
+    await page.getByRole("button", { name: "グリーン" }).click();
+    await page.getByLabel("最初の管理者メールアドレス").fill(email);
+    await page.getByLabel("最初の管理者パスワード").fill(password);
+    await page.getByRole("button", { name: "初期データ投入と管理者作成をまとめて実行" }).click();
+
+    await expect(page.getByText("初期データ投入と最初の管理者作成が完了しました。")).toBeVisible();
+    await page.getByLabel("セットアップトークン").fill("setup-secret-12345");
+    await page.getByLabel("最初の管理者メールアドレス").fill(`repeat-${email}`);
+    await page.getByLabel("最初の管理者パスワード").fill(password);
+    await page.getByRole("button", { name: "初期データ投入と管理者作成をまとめて実行" }).click();
+    await expect(page.getByText("初回セットアップはすでに完了しています。")).toBeVisible();
+
+    await login(page, email, password);
+    await page.goto("/admin");
+    await expect(page.getByText("現在の admin 判定ソース")).toBeVisible();
+  });
+
   test("learner can register, update profile, move on the map, study, answer quiz, and review history", async ({
     page
   }) => {

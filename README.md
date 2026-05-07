@@ -1,9 +1,17 @@
 # ドット学習マップ MVP
 
-Next.js App Router + TypeScript + Firebase Authentication + Cloud Firestore で作る、スマホ向け教育 Web アプリです。  
-このリポジトリは **外部公開しない運用** を前提に整理しています。  
-基本方針は `フロントはローカルで自分だけが確認`、`無料の Firebase はバックエンド用途のみ利用` です。  
-MVP では以下を実装しています。
+Next.js App Router + TypeScript + Firebase Authentication + Cloud Firestore で作る、スマホ向け教育 Web アプリです。
+
+このアプリの現在の推奨構成は次です。
+
+- フロント公開: **Firebase App Hosting**
+- 認証: **Firebase Authentication**
+- データ: **Cloud Firestore**
+- 権限制御: **Firestore Security Rules**
+
+自分で Web サーバーを立てる前提ではなく、**Firebase の既存サービスを組み合わせて公開する**構成に寄せています。
+
+## 今の実装範囲
 
 - メール/パスワード登録とログイン
 - 性別登録
@@ -21,25 +29,46 @@ MVP では以下を実装しています。
   - ユーザー一覧
   - ユーザー進行度確認
 
-## ディレクトリ構成
+## 最短の始め方
+
+ローカル起動なしで始めたい場合は、まずこのガイドを見てください。
+
+- [Firebase App Hosting 超入門ガイド](docs/APP_HOSTING_BEGINNER_GUIDE.md)
+
+このガイドでは、
+
+- GitHub へこのリポジトリを置く準備
+- Firebase プロジェクト作成
+- Blaze プラン設定
+- Auth / Firestore 有効化
+- App Hosting 接続
+- 環境変数設定
+- `/setup` で初期データ投入と最初の管理者作成
+
+までを、初心者向けに順番で説明しています。
+
+## 初回セットアップ画面
+
+Firebase App Hosting にデプロイしたあと、次の URL を開くと初回セットアップ画面が使えます。
 
 ```txt
-src/
-  app/
-  components/
-  lib/
-    services/
-    utils/
-    validators/
-  providers/
-  types/
-firebase/
-  firestore.rules
-  firestore.indexes.json
-  seed/
-public/
-  avatars/
+https://あなたの公開URL/setup
 ```
+
+この画面でできること:
+
+- サンプルアバター投入
+- サンプルマップ投入
+- サンプル地点投入
+- サンプル動画投入
+- サンプルクイズ投入
+- 最初の管理者アカウント作成
+- admin 権限付与
+
+必要なもの:
+
+- App Hosting に設定した `APP_SETUP_TOKEN`
+- 最初の管理者のメールアドレス / パスワード
 
 ## Firestore コレクション
 
@@ -54,61 +83,38 @@ public/
 - `userVideoStats`
 - `userQuizResults`
 
-## セットアップ
+## 重要な環境変数
 
-1. 依存関係をインストール
+### App Hosting に設定するもの
 
-```bash
-npm install
-```
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `APP_SETUP_TOKEN`
 
-2. `.env.local.example` をコピーして `.env.local` を作成
-
-```bash
-copy .env.local.example .env.local
-```
-
-3. Firebase プロジェクトを作成し、以下を有効化
-
-- Firebase Authentication
-  - メール/パスワード
-- Cloud Firestore
-
-補足:
-
-- この構成では Firebase を `認証 / DB / rules / seed` 用途に使います
-- フロントはまず `localhost` で確認し、**外部公開は行わない** 方針です
-
-4. `.env.local` に Firebase Web SDK の設定を入れる
-
-5. Firestore Rules を適用
-
-```bash
-firebase deploy --only firestore:rules,firestore:indexes
-```
-
-## seed データ投入
-
-`firebase/seed/import-seed.ts` は Firebase Admin SDK を使います。  
-`.env.local` に以下も設定してください。
+### ローカルの管理スクリプトでも使うもの
 
 - `FIREBASE_ADMIN_PROJECT_ID`
 - `FIREBASE_ADMIN_CLIENT_EMAIL`
 - `FIREBASE_ADMIN_PRIVATE_KEY`
 
-投入コマンド:
+`APP_SETUP_TOKEN` は公開しない値にしてください。
+初回セットアップ成功後は、同じ値を使い続けずに更新する運用を推奨します。
 
-```bash
-npm run seed
-```
+## 管理者権限の考え方
 
-初回 admin ユーザーも、手動で `users.role` だけを書き換えるのではなく、下記の運用スクリプトで `Custom Claims + Firestore role` を同期して付与してください。  
-現在の実装は `Custom Claims 優先 / users.role フォールバック` です。
+admin 判定は次の順で見ます。
 
-### 管理者権限の付与と剥奪
+1. Firebase Custom Claims
+2. `users.role`
 
-本番強度を上げるため、admin 判定は `Custom Claims 優先 / users.role フォールバック` に寄せています。  
-運用では以下のスクリプトで両方を同期させる想定です。既存の他 claims は壊さず、`admin` だけを追加・削除します。
+つまり現在は `Custom Claims 優先 / users.role フォールバック` です。  
+本番では Custom Claims を正本に寄せる想定です。
+
+### ローカル運用スクリプト
 
 付与:
 
@@ -128,94 +134,41 @@ npm run ops:grant-admin -- --email=<email>
 npm run ops:revoke-admin -- --uid=<uid>
 ```
 
-必要な環境変数:
+## 動画取得と未解放情報の扱い
 
-- `FIREBASE_ADMIN_PROJECT_ID`
-- `FIREBASE_ADMIN_CLIENT_EMAIL`
-- `FIREBASE_ADMIN_PRIVATE_KEY`
+YouTube の限定公開 URL は完全には秘匿できません。  
+そのためこのアプリでは以下の方針を取っています。
 
-## ローカル開発
+- 未解放動画は一覧に出しすぎない
+- ダッシュボードでは解放済み / 再視聴可の教材だけ表示
+- 動画詳細画面は `userProgress.unlockedVideoIds` を確認してから詳細取得
+- UI 上で `未解放` `解放済み` `再視聴可` を分離
+
+## Firestore Rules 方針
+
+- 一般ユーザーは自分のプロフィールと進行データのみ読み書き可
+- 教材マスタ編集は admin のみ
+- claims に `admin: true` がある管理者を優先して許可
+- `users.role` はフォールバック用途も兼ねる
+
+### ローカル CLI を使わずに Rules を反映したい場合
+
+Firebase Console の `Firestore Database > ルール` 画面に、[firebase/firestore.rules](/abs/path/c:/Users/sanwa/work/saim1/firebase/firestore.rules) の内容を貼り付けて公開しても始められます。  
+インデックスは初回アクセス時に Firebase が作成リンクを出す場合があるので、そのリンクを開いて作成してください。
+
+## ローカル開発とテスト
+
+公開運用は App Hosting を推奨していますが、開発用のローカル実行も残しています。
+
+### 起動
 
 ```bash
+npm install
+copy .env.local.example .env.local
 npm run dev
 ```
 
-ブラウザで以下を開きます。
-
-```txt
-http://localhost:3000
-```
-
-## 非公開運用の方針
-
-- フロントエンドは `localhost` でのみ確認する
-- Firebase は無料枠の `Authentication / Firestore / Rules` のみ利用する
-- **Firebase Hosting や App Hosting へ公開デプロイしない**
-- 検索エンジン露出を避けるため `robots noindex` と `robots.txt` を設定済み
-
-Web アプリである以上、ブラウザ確認にはローカル HTTP サーバー相当が必要です。  
-そのため `npm run dev` または `next start` のような **ローカル限定サーバー** は使いますが、外部公開用サーバーは前提にしません。
-
-## localhost ブラウザテスト
-
-人がスマホブラウザで触る流れを想定したテストは、Firebase Emulator と Playwright を使って `localhost` のみで完結します。  
-外部公開はせず、Auth / Firestore もローカル Emulator に接続します。
-
-実行コマンド:
-
-```bash
-npm run test:e2e:smoke
-npm run test:e2e
-```
-
-内容:
-
-- `test:e2e:smoke`
-  - トップ
-  - ログイン
-  - 新規登録
-  - 保護ページリダイレクト
-  - admin 概要
-  - ユーザー進行度確認
-- `test:e2e`
-  - 新規登録
-  - プロフィール更新
-  - マップ移動
-  - 動画視聴記録
-  - クイズ合格
-  - 履歴確認
-  - 再ログイン確認
-  - admin の動画追加
-  - admin のクイズ追加
-
-補足:
-
-- テスト用に `admin@example.com / Password123!` と `learner@example.com / Password123!` を Emulator へ投入します
-- Playwright では iPhone 相当と Android 相当のモバイルレイアウトで確認します
-- YouTube など外部メディアはブラウザテスト中にスタブ化し、`localhost` 検証を優先します
-
-## 実装ルールに沿った構成
-
-- 型定義は `src/types/models.ts` に集約
-- Firestore アクセスは `src/lib/services/*` から利用
-- UI コンポーネントと業務ロジックを分離
-- seed データで初期動作確認可能
-- 管理画面も service 層経由で CRUD
-
-主な service:
-
-- `auth-service.ts`
-- `user-service.ts`
-- `avatar-service.ts`
-- `map-service.ts`
-- `video-service.ts`
-- `quiz-service.ts`
-- `history-service.ts`
-- `admin-service.ts`
-
-## 検証コマンド
-
-型・lint の確認:
+### 検証
 
 ```bash
 npm run verify
@@ -227,48 +180,39 @@ npm run lint
 npm run build
 ```
 
+## ディレクトリ構成
+
+```txt
+src/
+  app/
+  components/
+  lib/
+    services/
+    utils/
+    validators/
+  providers/
+  types/
+firebase/
+  firestore.rules
+  firestore.indexes.json
+  seed/
+public/
+  avatars/
+docs/
+  APP_HOSTING_BEGINNER_GUIDE.md
+```
+
 ## 本番強度と運用計画
 
 - 本番強度プラン: `docs/PRODUCTION_HARDENING_PLAN.md`
 - 運用効率化プラン: `docs/OPERATIONS_PLAN.md`
-
-今回の実装では、次の土台を先に入れています。
-
-- admin 判定の抽象化
-- Custom Claims へ移行しやすい auth/provider 構成
-- Rules の claims 対応
-- admin 付与/剥奪スクリプト
-- 管理画面の検索/絞り込み
-
-## 動画取得と未解放情報の扱い
-
-YouTube の限定公開 URL は完全には秘匿できません。  
-そのためこのアプリでは以下の方針を取っています。
-
-- 未解放動画は一覧に出しすぎない
-- ダッシュボードでは解放済み/再視聴可の教材だけ表示
-- 動画詳細画面は `userProgress.unlockedVideoIds` を確認してから詳細取得
-- UI 上で `未解放` `解放済み` `再視聴可` を分離
-
-## Firestore Rules 方針
-
-- 一般ユーザーは自分のプロフィールと進行データのみ読み書き可
-- 教材マスタ編集は admin のみ
-- admin 判定は `Custom Claims 優先 / users.role フォールバック`
-- Rules 側も同じ方針で、claims に `admin: true` がある管理者を優先して許可
-
-## 公開デプロイについて
-
-現時点では **外部公開しない** 方針のため、Hosting / App Hosting への公開デプロイ手順は標準運用から外しています。  
-将来必要になった場合だけ、別ブランチまたは別設定で公開導線を追加する想定です。
 
 ## 未解決事項と注意点
 
 - YouTube の視聴完了は MVP では `視聴完了として記録` ボタンで扱っています
 - 厳密な再生率判定は将来 YouTube IFrame API で強化可能です
 - Firestore Rules は権限制御中心で、進行ロジックの厳密検証まではしていません
-- 本番では admin 判定をカスタムクレームへ移行するのがより安全です
-- `npm run test:rules` はローカル Firestore Emulator を使います
+- App Hosting は Blaze プラン必須です
 
 ## 今後の拡張案
 

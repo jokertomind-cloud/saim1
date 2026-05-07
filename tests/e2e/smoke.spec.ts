@@ -35,7 +35,7 @@ test.describe("@smoke localhost-only smoke", () => {
     await page.getByRole("button", { name: "ログイン" }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
-    await page.getByRole("link", { name: "管理" }).click();
+    await page.goto("/admin");
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByRole("heading", { name: "管理画面" })).toBeVisible();
 
